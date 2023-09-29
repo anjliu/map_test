@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Bus Location</title>
+<title>Add live realtime data</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
@@ -24,14 +24,14 @@ body { margin: 0; padding: 0; }
     });
 
     map.on('load', async () => {
-        // Get the initial location .
+        // Get the initial location of the International Space Station (ISS).
         const geojson = await getLocation();
-        // Add the location as a source.
+        // Add the ISS location as a source.
         map.addSource('iss', {
             type: 'geojson',
             data: geojson
         });
-        // Add the symbol layer to the map.
+        // Add the rocket symbol layer to the map.
         map.addLayer({
             'id': 'iss',
             'type': 'symbol',
@@ -42,7 +42,7 @@ body { margin: 0; padding: 0; }
                 // the style in Mapbox Studio and click the "Images" tab.
                 // To add a new image to the style at runtime see
                 // https://docs.mapbox.com/mapbox-gl-js/example/add-image/
-                'icon-image': 'bus'
+                'icon-image': 'rocket'
             }
         });
 
@@ -53,19 +53,16 @@ body { margin: 0; padding: 0; }
         }, 2000);
 
         async function getLocation(updateSource) {
-            // Make a GET request to the API and return the location.
-            // try {
+            // Make a GET request to the API and return the location of the ISS.
+            try {
                 const response = await fetch(
-                    'https://zemcpla6ksaog3attggiebq7eq0cbctq.lambda-url.us-east-2.on.aws',
+                    'https://api.wheretheiss.at/v1/satellites/25544',
                     { method: 'GET' }
                 );
-                const response_list = await response.json();
-                const response_item = response_list[0];
-                console.log(response_item);
-                const { lon, lat} = response_item
+                const { latitude, longitude } = await response.json();
                 // Fly the map to the location.
                 map.flyTo({
-                    center: [lon, lat],
+                    center: [longitude, latitude],
                     speed: 0.5
                 });
                 // Return the location of the ISS as GeoJSON.
@@ -76,16 +73,16 @@ body { margin: 0; padding: 0; }
                             'type': 'Feature',
                             'geometry': {
                                 'type': 'Point',
-                                'coordinates': [lon, lat]
+                                'coordinates': [longitude, latitude]
                             }
                         }
                     ]
                 };
-            // } catch (err) {
-            //     // If the updateSource interval is defined, clear the interval to stop updating the source.
-            //     if (updateSource) clearInterval(updateSource);
-            //     throw new Error(err);
-            // }
+            } catch (err) {
+                // If the updateSource interval is defined, clear the interval to stop updating the source.
+                if (updateSource) clearInterval(updateSource);
+                throw new Error(err);
+            }
         }
     });
 </script>
